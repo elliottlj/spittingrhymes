@@ -67,7 +67,7 @@
 <div id="game-screen" class="screen">
   <div id="game-header">
     <div id="target-display"></div>
-    <div id="timer">90</div>
+    <div id="timer">30</div>
   </div>
   <div id="score-line">Score: <strong id="score">0</strong></div>
   <input type="text" id="guess-input" placeholder="Type a rhyme and press Enter" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
@@ -77,6 +77,7 @@
 
 <div id="results-screen" class="screen">
   <h2>Round over</h2>
+  <button id="play-again-btn">Play again</button>
   <p><strong>Score: <span id="final-score"></span></strong></p>
   <p id="found-summary" style="font-size:13px;color:#555;margin-top:2px;"></p>
   <div id="calculating" style="display:none">Calculating missed rhymes…</div>
@@ -90,8 +91,6 @@
   <hr>
   <h2>Rhymes you missed</h2>
   <ul id="missed-grid"></ul>
-  <hr>
-  <button id="play-again-btn">Play again</button>
 </div>
 
 <script>
