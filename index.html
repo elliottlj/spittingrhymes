@@ -53,9 +53,9 @@
   <div style="margin: 8px 0; display: flex; align-items: center; gap: 10px;">
     <label for="timer-select" style="font-size:14px;color:#444;">Timer:</label>
     <select id="timer-select" style="font-size:15px;padding:5px 8px;border:1px solid #ccc;border-radius:4px;">
-      <option value="30">30 seconds</option>
+      <option value="30" selected>30 seconds</option>
       <option value="60">60 seconds</option>
-      <option value="90" selected>90 seconds</option>
+      <option value="90">90 seconds</option>
       <option value="120">120 seconds</option>
       <option value="180">3 minutes</option>
     </select>
@@ -77,7 +77,9 @@
 
 <div id="results-screen" class="screen">
   <h2>Round over</h2>
+  <hr>
   <button id="play-again-btn">Play again</button>
+  <hr>
   <p><strong>Score: <span id="final-score"></span></strong></p>
   <p id="found-summary" style="font-size:13px;color:#555;margin-top:2px;"></p>
   <div id="calculating" style="display:none">Calculating missed rhymes…</div>
