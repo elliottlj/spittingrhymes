@@ -49,6 +49,7 @@
   #stats-panel h2 { font-size: 16px; margin-bottom: 8px; }
   #stats-panel h2:not(:first-child) { margin-top: 18px; }
   #stats-close-btn { position: absolute; top: 12px; right: 12px; font-size: 14px; padding: 4px 9px; }
+  #stats-clear-btn { position: absolute; top: 12px; right: 52px; font-size: 14px; padding: 4px 9px; }
   .stats-empty { color: #888; font-size: 13px; }
   table.stats-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   table.stats-table th, table.stats-table td { text-align: left; padding: 3px 4px; border-bottom: 1px solid #eee; }
@@ -65,6 +66,7 @@
 <div id="stats-overlay">
   <div id="stats-panel">
     <button id="stats-close-btn">✕</button>
+    <button id="stats-clear-btn" title="Clear history">🗑️</button>
     <h2>🏆 Top 10 All-Time</h2>
     <div id="stats-alltime"></div>
     <h2>🗓️ Last 30 Days</h2>
@@ -219,6 +221,16 @@ function openStatsPanel() {
 
 function closeStatsPanel() {
   document.getElementById('stats-overlay').classList.remove('open');
+}
+
+function clearStatsHistory() {
+  if (!confirm('Clear all saved stats history? This can\'t be undone.')) return;
+  try {
+    localStorage.removeItem(STATS_KEY);
+  } catch (e) {
+    console.error('Failed to clear stats:', e);
+  }
+  renderStatsPanel();
 }
 
 
@@ -492,6 +504,7 @@ document.getElementById('new-random-btn').addEventListener('click', () => {
 
 document.getElementById('stats-btn').addEventListener('click', openStatsPanel);
 document.getElementById('stats-close-btn').addEventListener('click', closeStatsPanel);
+document.getElementById('stats-clear-btn').addEventListener('click', clearStatsHistory);
 document.getElementById('stats-overlay').addEventListener('click', e => {
   if (e.target.id === 'stats-overlay') closeStatsPanel();
 });
