@@ -40,9 +40,36 @@
   #share-url { font-size: 12px; color: #555; word-break: break-all; margin-bottom: 8px; }
   #copy-btn { font-size: 13px; padding: 5px 12px; }
   #copy-btn.copied { background: #d4edda; border-color: #2a7a2a; color: #2a7a2a; }
+
+  #stats-btn { position: fixed; top: 14px; right: 14px; z-index: 100; font-size: 13px; padding: 6px 12px; }
+  #stats-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 200; }
+  #stats-overlay.open { display: block; }
+  #stats-panel { position: fixed; top: 0; right: 0; height: 100%; width: 320px; max-width: 85vw; background: #fff; box-shadow: -2px 0 12px rgba(0,0,0,0.15); padding: 18px 16px; overflow-y: auto; transform: translateX(100%); transition: transform 0.2s ease; }
+  #stats-overlay.open #stats-panel { transform: translateX(0); }
+  #stats-panel h2 { font-size: 16px; margin-bottom: 8px; }
+  #stats-panel h2:not(:first-child) { margin-top: 18px; }
+  #stats-close-btn { position: absolute; top: 12px; right: 12px; font-size: 14px; padding: 4px 9px; }
+  .stats-empty { color: #888; font-size: 13px; }
+  table.stats-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.stats-table th, table.stats-table td { text-align: left; padding: 3px 4px; border-bottom: 1px solid #eee; }
+  table.stats-table th { color: #666; font-weight: 600; }
+  table.stats-table td.stats-score { font-weight: 600; }
+  table.stats-table td.stats-date { color: #777; font-size: 12px; white-space: nowrap; }
 </style>
 </head>
 <body>
+
+<button id="stats-btn">📊 Stats</button>
+
+<div id="stats-overlay">
+  <div id="stats-panel">
+    <button id="stats-close-btn">✕</button>
+    <h2>🏆 Top 10 All-Time</h2>
+    <div id="stats-alltime"></div>
+    <h2>🗓️ Last 30 Days</h2>
+    <div id="stats-recent"></div>
+  </div>
+</div>
 
 <div id="setup-screen" class="screen">
   <h1>Simulation Theory Rhymer</h1>
@@ -111,6 +138,87 @@
 let cmuDict = {};
 let randomWords = [];
 let commonWords = [];
+
+const STATS_KEY = 'rhymerStats';
+
+function loadStatsRecords() {
+  try {
+    const raw = localStorage.getItem(STATS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveStatsRecords(records) {
+  try {
+    localStorage.setItem(STATS_KEY, JSON.stringify(records));
+  } catch (e) {
+    console.error('Failed to save stats:', e);
+  }
+}
+
+function logRoundResult(word, score, trueCount, slantCount) {
+  const records = loadStatsRecords();
+  records.push({ word, score, trueCount, slantCount, date: new Date().toISOString() });
+  saveStatsRecords(records);
+}
+
+// Lazy purge: run once on page load. Keep a record if it's within the
+// last 30 days OR currently in the top 10 by score; discard otherwise.
+function purgeStatsOnLoad() {
+  const records = loadStatsRecords();
+  if (records.length === 0) return;
+  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const top10Scores = [...records].sort((a, b) => b.score - a.score).slice(0, 10);
+  const top10Set = new Set(top10Scores);
+  const kept = records.filter(r => new Date(r.date).getTime() >= cutoff || top10Set.has(r));
+  if (kept.length !== records.length) saveStatsRecords(kept);
+}
+
+function formatStatsDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) +
+    ' ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+
+function renderStatsTable(records, opts) {
+  if (records.length === 0) {
+    return '<p class="stats-empty">No rounds played yet</p>';
+  }
+  const rows = records.map(r => `
+    <tr>
+      <td>${r.word}</td>
+      <td class="stats-score">${r.score}</td>
+      <td>${r.trueCount}/${r.slantCount}</td>
+      <td class="stats-date">${opts.showDate ? formatStatsDate(r.date) : ''}</td>
+    </tr>`).join('');
+  return `<table class="stats-table">
+    <thead><tr><th>Word</th><th>Score</th><th>T/S</th><th>${opts.showDate ? 'When' : ''}</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function renderStatsPanel() {
+  const records = loadStatsRecords();
+  const allTime = [...records].sort((a, b) => b.score - a.score).slice(0, 10);
+  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const recent = records
+    .filter(r => new Date(r.date).getTime() >= cutoff)
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+  document.getElementById('stats-alltime').innerHTML = renderStatsTable(allTime, { showDate: false });
+  document.getElementById('stats-recent').innerHTML = renderStatsTable(recent, { showDate: true });
+}
+
+function openStatsPanel() {
+  renderStatsPanel();
+  document.getElementById('stats-overlay').classList.add('open');
+}
+
+function closeStatsPanel() {
+  document.getElementById('stats-overlay').classList.remove('open');
+}
+
 
 function getRhymeTail(phones) {
   for (let i = 0; i < phones.length; i++) {
@@ -246,6 +354,7 @@ function endGame() {
   clearInterval(state.interval);
   const trueCount = state.found.filter(f => f.type === 'true').length;
   const slantCount = state.found.filter(f => f.type === 'slant').length;
+  logRoundResult(state.target, state.score, trueCount, slantCount);
   document.getElementById('final-score').textContent = state.score;
   document.getElementById('found-summary').textContent =
     `${trueCount} true rhyme${trueCount !== 1 ? 's' : ''}, ${slantCount} slant rhyme${slantCount !== 1 ? 's' : ''} found`;
@@ -361,6 +470,12 @@ document.getElementById('new-random-btn').addEventListener('click', () => {
   startGame(word);
 });
 
+document.getElementById('stats-btn').addEventListener('click', openStatsPanel);
+document.getElementById('stats-close-btn').addEventListener('click', closeStatsPanel);
+document.getElementById('stats-overlay').addEventListener('click', e => {
+  if (e.target.id === 'stats-overlay') closeStatsPanel();
+});
+
 document.getElementById('play-again-btn').addEventListener('click', () => {
   window.location.hash = '';
   document.getElementById('word-input').value = '';
@@ -373,6 +488,10 @@ const hashWord = getHashWord();
 if (hashWord) {
   document.getElementById('word-input').value = hashWord;
 }
+
+// Lazy purge of old/low-score stats records, once per page load
+purgeStatsOnLoad();
+
 
 // Load dictionary data, then reveal the setup screen
 Promise.all([
