@@ -108,9 +108,9 @@
 </div>
 
 <script>
-let cmuDict = {};
-let randomWords = [];
-let commonWords = [];
+let cmuDict = {"boats":["B","OW1","T","S"],"bloats":["B","L","OW1","T","S"],"coats":["K","OW1","T","S"],"connotes":["K","AH0","N","OW1","T","S"],"cotes":["K","OW1","T","S"],"denotes":["D","IH0","N","OW1","T","S"],"devotes":["D","IH0","V","OW1","T","S"],"floats":["F","L","OW1","T","S"],"gloats":["G","L","OW1","T","S"],"cat":["K","AE1","T"],"arnatt":["AA0","R","N","AE1","T"],"at":["AE1","T"],"bat":["B","AE1","T"],"batt":["B","AE1","T"],"batte":["B","AE1","T"],"begat":["B","IH0","G","AE1","T"],"bhatt":["B","AE1","T"],"biernat":["B","IH0","R","N","AE1","T"],"orange":["AO1","R","AH0","N","JH"],"silver":["S","IH1","L","V","ER0"],"start":["S","T","AA1","R","T"],"ahart":["AH0","HH","AA1","R","T"],"apart":["AH0","P","AA1","R","T"],"art":["AA1","R","T"],"bart":["B","AA1","R","T"],"bossart":["B","AH0","S","AA1","R","T"],"cart":["K","AA1","R","T"],"carte":["K","AA1","R","T"],"chart":["CH","AA1","R","T"],"aaron":["EH1","R","AH0","N"],"abandon":["AH0","B","AE1","N","D","AH0","N"],"abbey":["AE1","B","IY0"]};
+let randomWords = ["boats","coats","cat","at","bat","start","apart","art","bart","cart","chart","aaron","abandon","abbey"];
+let commonWords = ["aaron","abandon","abbey","apart","art","at","bart","bat","batt","begat","bloats","boats","cart","carte","cat","chart","coats","connotes","cotes","denotes","devotes","floats","gloats","orange","silver","start"];
 
 function getRhymeTail(phones) {
   for (let i = 0; i < phones.length; i++) {
@@ -374,21 +374,8 @@ if (hashWord) {
   document.getElementById('word-input').value = hashWord;
 }
 
-// Load dictionary data, then reveal the setup screen
-Promise.all([
-  fetch('cmudict.json').then(r => r.json()),
-  fetch('randomwords.json').then(r => r.json()),
-  fetch('commonwords.json').then(r => r.json())
-]).then(([cmu, random, common]) => {
-  cmuDict = cmu;
-  randomWords = random;
-  commonWords = common;
-  showScreen('setup-screen');
-}).catch(err => {
-  document.getElementById('loading-screen').innerHTML =
-    '<p style="color:#c00;font-size:14px;">Failed to load dictionary data. Make sure cmudict.json, randomwords.json, and commonwords.json are in the same folder as this file, and that it is served over http(s) rather than opened directly from disk.</p>';
-  console.error('Dictionary load failed:', err);
-});
+// Local test build: dictionary is embedded inline above (mini dataset), no fetch needed.
+showScreen('setup-screen');
 </script>
 </body>
 </html>
