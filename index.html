@@ -55,6 +55,7 @@
   table.stats-table th { color: #666; font-weight: 600; }
   table.stats-table td.stats-score { font-weight: 600; }
   table.stats-table td.stats-date { color: #777; font-size: 12px; white-space: nowrap; }
+  table.stats-table td.stats-duration { color: #777; font-size: 12px; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -158,9 +159,9 @@ function saveStatsRecords(records) {
   }
 }
 
-function logRoundResult(word, score, trueCount, slantCount) {
+function logRoundResult(word, score, trueCount, slantCount, duration) {
   const records = loadStatsRecords();
-  records.push({ word, score, trueCount, slantCount, date: new Date().toISOString() });
+  records.push({ word, score, trueCount, slantCount, duration, date: new Date().toISOString() });
   saveStatsRecords(records);
 }
 
@@ -191,10 +192,11 @@ function renderStatsTable(records, opts) {
       <td>${r.word}</td>
       <td class="stats-score">${r.score}</td>
       <td>${r.trueCount}/${r.slantCount}</td>
+      <td class="stats-duration">${r.duration != null ? r.duration + 's' : '—'}</td>
       <td class="stats-date">${opts.showDate ? formatStatsDate(r.date) : ''}</td>
     </tr>`).join('');
   return `<table class="stats-table">
-    <thead><tr><th>Word</th><th>Score</th><th>T/S</th><th>${opts.showDate ? 'When' : ''}</th></tr></thead>
+    <thead><tr><th>Word</th><th>Score</th><th>T/S</th><th>Time</th><th>${opts.showDate ? 'When' : ''}</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
 }
@@ -260,14 +262,27 @@ function getAllTrueRhymes(target) {
   });
 }
 
-function getShareUrl(word) {
-  return window.location.origin + window.location.pathname + '#' + encodeURIComponent(word);
+function getShareUrl(word, seconds) {
+  return window.location.origin + window.location.pathname + '#' + encodeURIComponent(word) + '-' + seconds;
 }
 
-// Read word from URL hash on load
-function getHashWord() {
+// Read word (and optional seconds) from URL hash on load.
+// Format: #word-seconds (e.g. #start-90), split on the LAST dash so
+// hyphenated words still work. If the trailing segment isn't a valid
+// number, the whole hash is treated as just the word (old-format link).
+function getHashState() {
   const hash = window.location.hash.slice(1);
-  return hash ? decodeURIComponent(hash) : null;
+  if (!hash) return null;
+  const decoded = decodeURIComponent(hash);
+  const lastDash = decoded.lastIndexOf('-');
+  if (lastDash === -1) return { word: decoded, seconds: null };
+  const wordPart = decoded.slice(0, lastDash);
+  const secondsPart = decoded.slice(lastDash + 1);
+  const seconds = parseInt(secondsPart, 10);
+  if (!wordPart || isNaN(seconds) || seconds <= 0 || String(seconds) !== secondsPart) {
+    return { word: decoded, seconds: null };
+  }
+  return { word: wordPart, seconds };
 }
 
 let state = {};
@@ -277,7 +292,7 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
 }
 
-function startGame(word) {
+function startGame(word, seconds) {
   const target = word.toLowerCase().trim();
   if (!cmuDict[target]) {
     document.getElementById('setup-error').textContent = `"${word}" not found in dictionary. Try another word.`;
@@ -285,10 +300,15 @@ function startGame(word) {
   }
   // Clear any running timer from a previous round (e.g. mid-game restart)
   if (state.interval) clearInterval(state.interval);
-  // Update URL hash
-  window.location.hash = encodeURIComponent(target);
 
-  state = { target, found: [], score: 0, timer: parseInt(document.getElementById('timer-select').value), interval: null };
+  const duration = (typeof seconds === 'number' && seconds > 0)
+    ? seconds
+    : parseInt(document.getElementById('timer-select').value);
+
+  // Update URL hash (word + seconds, so shared links reproduce both)
+  window.location.hash = encodeURIComponent(target) + '-' + duration;
+
+  state = { target, found: [], score: 0, duration, timer: duration, interval: null };
   document.getElementById('target-display').textContent = target;
   document.getElementById('score').textContent = '0';
   document.getElementById('timer').textContent = state.timer;
@@ -354,13 +374,13 @@ function endGame() {
   clearInterval(state.interval);
   const trueCount = state.found.filter(f => f.type === 'true').length;
   const slantCount = state.found.filter(f => f.type === 'slant').length;
-  logRoundResult(state.target, state.score, trueCount, slantCount);
+  logRoundResult(state.target, state.score, trueCount, slantCount, state.duration);
   document.getElementById('final-score').textContent = state.score;
   document.getElementById('found-summary').textContent =
     `${trueCount} true rhyme${trueCount !== 1 ? 's' : ''}, ${slantCount} slant rhyme${slantCount !== 1 ? 's' : ''} found`;
 
   // Share URL
-  const shareUrl = getShareUrl(state.target);
+  const shareUrl = getShareUrl(state.target, state.duration);
   document.getElementById('share-url').textContent = shareUrl;
   const copyBtn = document.getElementById('copy-btn');
   copyBtn.className = '';
@@ -483,10 +503,25 @@ document.getElementById('play-again-btn').addEventListener('click', () => {
   showScreen('setup-screen');
 });
 
-// On load: check for hash word and pre-fill
-const hashWord = getHashWord();
-if (hashWord) {
-  document.getElementById('word-input').value = hashWord;
+// On load: check for hash word (and optional seconds) and pre-fill
+const hashState = getHashState();
+if (hashState) {
+  document.getElementById('word-input').value = hashState.word;
+  if (hashState.seconds != null) {
+    const timerSelect = document.getElementById('timer-select');
+    const matchingOption = Array.from(timerSelect.options).find(o => parseInt(o.value, 10) === hashState.seconds);
+    if (matchingOption) {
+      timerSelect.value = String(hashState.seconds);
+    } else {
+      // Arbitrary/custom duration not in the preset list — add it so the
+      // dropdown reflects exactly what's in the shared link.
+      const opt = document.createElement('option');
+      opt.value = String(hashState.seconds);
+      opt.textContent = `${hashState.seconds} seconds (from link)`;
+      opt.selected = true;
+      timerSelect.appendChild(opt);
+    }
+  }
 }
 
 // Lazy purge of old/low-score stats records, once per page load
