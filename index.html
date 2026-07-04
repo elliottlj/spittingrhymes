@@ -6,7 +6,8 @@
 <title>Simulation Theory Rhymer</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: sans-serif; max-width: 640px; margin: 40px auto; padding: 0 20px; background: #fff; color: #111; }
+  body { font-family: sans-serif; background: #fff; color: #111; }
+  .page-container { max-width: 640px; margin: 40px auto; padding: 0 20px; }
   h1 { font-size: 24px; margin-bottom: 4px; }
   p.sub { color: #666; font-size: 14px; margin-bottom: 16px; }
   input[type=text] { width: 100%; font-size: 16px; padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; margin: 6px 0; }
@@ -41,7 +42,7 @@
   #copy-btn { font-size: 13px; padding: 5px 12px; }
   #copy-btn.copied { background: #d4edda; border-color: #2a7a2a; color: #2a7a2a; }
 
-  #stats-btn { position: fixed; top: 14px; right: 14px; z-index: 100; font-size: 13px; padding: 6px 12px; }
+  #stats-btn { position: fixed; top: 66px; right: 14px; z-index: 100; font-size: 13px; padding: 6px 12px; }
   #stats-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 200; }
   #stats-overlay.open { display: block; }
   #stats-panel { position: fixed; top: 0; right: 0; height: 100%; width: 320px; max-width: 85vw; background: #fff; box-shadow: -2px 0 12px rgba(0,0,0,0.15); padding: 18px 16px; overflow-y: auto; transform: translateX(100%); transition: transform 0.2s ease; }
@@ -60,6 +61,10 @@
 </style>
 </head>
 <body>
+
+<div id="shared-header"></div>
+
+<div class="page-container">
 
 <button id="stats-btn">📊 Stats</button>
 
@@ -136,6 +141,21 @@
 <div id="loading-screen" class="screen active">
   <p style="color:#666;font-size:14px;">Loading dictionary…</p>
 </div>
+
+</div>
+
+<div id="shared-footer"></div>
+
+<script>
+  fetch('header.html')
+    .then(r => r.text())
+    .then(html => { document.getElementById('shared-header').innerHTML = html; })
+    .catch(() => {});
+  fetch('footer.html')
+    .then(r => r.text())
+    .then(html => { document.getElementById('shared-footer').innerHTML = html; })
+    .catch(() => {});
+</script>
 
 <script>
 let cmuDict = {};
