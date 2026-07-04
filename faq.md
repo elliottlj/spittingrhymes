@@ -24,6 +24,10 @@ Yes, the trash icon in the Stats panel clears it. This can't be undone.
 
 No. The game just matches the pronunciation of the words in the CMU dictionary to the word that you've entered. Good ol' fashioned "I".
 
+### Should I do musical improv?
+
+Yes.
+
 ### Can I share a round with someone?
 
 Yes - once a round ends, press "Copy link" and share it. Whoever you send it to plays the exact same round.
