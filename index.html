@@ -43,13 +43,14 @@
   #copy-btn.copied { background: #d4edda; border-color: #2a7a2a; color: #2a7a2a; }
 
   #stats-btn { position: fixed; top: 66px; right: 14px; z-index: 100; font-size: 13px; padding: 6px 12px; }
-  #stats-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 200; }
-  #stats-overlay.open { display: block; }
-  #stats-panel { position: fixed; top: 0; right: 0; height: 100%; width: 320px; max-width: 85vw; background: #fff; box-shadow: -2px 0 12px rgba(0,0,0,0.15); padding: 18px 16px; overflow-y: auto; transform: translateX(100%); transition: transform 0.2s ease; }
-  #stats-overlay.open #stats-panel { transform: translateX(0); }
-  #stats-panel h2 { font-size: 16px; margin-bottom: 8px; }
-  #stats-panel h2:not(:first-child) { margin-top: 18px; }
-  #stats-close-btn { position: absolute; top: 12px; right: 12px; font-size: 14px; padding: 4px 9px; }
+  #faq-btn { position: fixed; top: 105px; right: 14px; z-index: 100; font-size: 13px; padding: 6px 12px; }
+  .panel-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 200; }
+  .panel-overlay.open { display: block; }
+  .panel { position: fixed; top: 0; right: 0; height: 100%; width: 320px; max-width: 85vw; background: #fff; box-shadow: -2px 0 12px rgba(0,0,0,0.15); padding: 18px 16px; overflow-y: auto; transform: translateX(100%); transition: transform 0.2s ease; }
+  .panel-overlay.open .panel { transform: translateX(0); }
+  .panel h2 { font-size: 16px; margin-bottom: 8px; }
+  .panel h2:not(:first-child) { margin-top: 18px; }
+  .panel-close-btn { position: absolute; top: 12px; right: 12px; font-size: 14px; padding: 4px 9px; }
   #stats-clear-btn { position: absolute; top: 12px; right: 52px; font-size: 14px; padding: 4px 9px; }
   .stats-empty { color: #888; font-size: 13px; }
   table.stats-table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -58,6 +59,9 @@
   table.stats-table td.stats-score { font-weight: 600; }
   table.stats-table td.stats-date { color: #777; font-size: 12px; white-space: nowrap; }
   table.stats-table td.stats-duration { color: #777; font-size: 12px; white-space: nowrap; }
+  #faq-content p { font-size: 13px; color: #444; line-height: 1.5; margin: 4px 0; }
+  #faq-content p.faq-q { font-size: 13.5px; font-weight: 600; color: #111; margin-top: 16px; }
+  #faq-content h2:first-child { margin-top: 0; }
 </style>
 </head>
 <body>
@@ -67,15 +71,23 @@
 <div class="page-container">
 
 <button id="stats-btn">📊 Stats</button>
+<button id="faq-btn">❓ FAQ</button>
 
-<div id="stats-overlay">
-  <div id="stats-panel">
-    <button id="stats-close-btn">✕</button>
+<div id="stats-overlay" class="panel-overlay">
+  <div id="stats-panel" class="panel">
+    <button id="stats-close-btn" class="panel-close-btn">✕</button>
     <button id="stats-clear-btn" title="Clear history">🗑️</button>
     <h2>🏆 Top 10 All-Time</h2>
     <div id="stats-alltime"></div>
     <h2>🗓️ Last 30 Days</h2>
     <div id="stats-recent"></div>
+  </div>
+</div>
+
+<div id="faq-overlay" class="panel-overlay">
+  <div id="faq-panel" class="panel">
+    <button id="faq-close-btn" class="panel-close-btn">✕</button>
+    <div id="faq-content"></div>
   </div>
 </div>
 
@@ -527,6 +539,51 @@ document.getElementById('stats-close-btn').addEventListener('click', closeStatsP
 document.getElementById('stats-clear-btn').addEventListener('click', clearStatsHistory);
 document.getElementById('stats-overlay').addEventListener('click', e => {
   if (e.target.id === 'stats-overlay') closeStatsPanel();
+});
+
+// Minimal markdown renderer for faq.md: supports "## heading", "### question",
+// plain paragraphs (blank-line separated), and **bold** within them.
+function renderFaqMarkdown(md) {
+  const boldify = text => text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  let html = '';
+  let paragraph = [];
+  const flush = () => {
+    const text = paragraph.join(' ').trim();
+    if (text) html += `<p>${boldify(text)}</p>`;
+    paragraph = [];
+  };
+  md.split('\n').forEach(rawLine => {
+    const line = rawLine.trim();
+    if (line.startsWith('## ')) { flush(); html += `<h2>${boldify(line.slice(3))}</h2>`; }
+    else if (line.startsWith('### ')) { flush(); html += `<p class="faq-q">${boldify(line.slice(4))}</p>`; }
+    else if (line === '') { flush(); }
+    else { paragraph.push(line); }
+  });
+  flush();
+  return html;
+}
+
+let faqLoaded = false;
+function loadFaqIfNeeded() {
+  if (faqLoaded) return;
+  faqLoaded = true;
+  fetch('faq.md')
+    .then(r => r.text())
+    .then(md => { document.getElementById('faq-content').innerHTML = renderFaqMarkdown(md); })
+    .catch(() => {
+      document.getElementById('faq-content').innerHTML = '<p>Could not load FAQ content.</p>';
+    });
+}
+
+document.getElementById('faq-btn').addEventListener('click', () => {
+  loadFaqIfNeeded();
+  document.getElementById('faq-overlay').classList.add('open');
+});
+document.getElementById('faq-close-btn').addEventListener('click', () => {
+  document.getElementById('faq-overlay').classList.remove('open');
+});
+document.getElementById('faq-overlay').addEventListener('click', e => {
+  if (e.target.id === 'faq-overlay') document.getElementById('faq-overlay').classList.remove('open');
 });
 
 document.getElementById('play-again-btn').addEventListener('click', () => {
