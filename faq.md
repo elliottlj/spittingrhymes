@@ -24,6 +24,10 @@ No. It's stored only in your browser's local storage — nothing is uploaded any
 
 Yes, the trash icon in the Stats panel clears it. This can't be undone.
 
+### Does it use AI?
+
+No. The game just matches the pronunciation of the words in the CMU dictionary to the word that you've entered. Good ol' fashioned "I".
+
 ### What's a stressed vowel?
 
 Coming soon!
