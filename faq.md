@@ -12,13 +12,9 @@ Helping you to learn which words rhyme. This could be because you want to use rh
 
 Either it doesn't rhyme based on the dictionay pronunciation, or it isn't in the dictionary. The dictionary is the [CMU Pronouncing Dictionary](http://www.speech.cs.cmu.edu/cgi-bin/cmudict) which uses Americation pronunciations and has a few words missing.
 
-### Can I share a round with someone?
+### Is my data saved anywhere online?
 
-Yes - once a round ends, press "Copy link" and share it. Whoever you send it to plays the exact same round.
-
-### Are my stats history saved anywhere online?
-
-No. They're stored only in your browser's local storage - nothing is uploaded anywhere.
+No. Your run history is only stored in your browser's local storage - nothing is uploaded anywhere.
 
 ### Can I clear my history?
 
@@ -27,6 +23,10 @@ Yes, the trash icon in the Stats panel clears it. This can't be undone.
 ### Does it use AI?
 
 No. The game just matches the pronunciation of the words in the CMU dictionary to the word that you've entered. Good ol' fashioned "I".
+
+### Can I share a round with someone?
+
+Yes - once a round ends, press "Copy link" and share it. Whoever you send it to plays the exact same round.
 
 ### What's a stressed vowel?
 
