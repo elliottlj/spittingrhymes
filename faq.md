@@ -14,7 +14,7 @@ Either it doesn't rhyme based on the dictionay pronunciation, or it isn't in the
 
 ### Can I share a round with someone?
 
-Yes — once a round ends, press "Copy link" and share it. Whoever you send it to plays the exact same round.
+Yes - once a round ends, press "Copy link" and share it. Whoever you send it to plays the exact same round.
 
 ### Is my stats history saved anywhere online?
 
