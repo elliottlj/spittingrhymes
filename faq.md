@@ -16,9 +16,9 @@ Either it doesn't rhyme based on the dictionay pronunciation, or it isn't in the
 
 Yes - once a round ends, press "Copy link" and share it. Whoever you send it to plays the exact same round.
 
-### Is my stats history saved anywhere online?
+### Are my stats history saved anywhere online?
 
-No. It's stored only in your browser's local storage — nothing is uploaded anywhere.
+No. They're stored only in your browser's local storage - nothing is uploaded anywhere.
 
 ### Can I clear my history?
 
