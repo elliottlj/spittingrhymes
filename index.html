@@ -162,11 +162,11 @@
 <div id="shared-footer"></div>
 
 <script>
-  fetch('header.html')
+  fetch('https://liamteacher.com/header.html', { cache: 'no-store' })
     .then(r => r.text())
     .then(html => { document.getElementById('shared-header').innerHTML = html; })
     .catch(() => {});
-  fetch('footer.html')
+  fetch('https://liamteacher.com/footer.html', { cache: 'no-store' })
     .then(r => r.text())
     .then(html => { document.getElementById('shared-footer').innerHTML = html; })
     .catch(() => {});
