@@ -66,10 +66,12 @@
   #faq-content h2:first-child { margin-top: 0; }
   #faq-content a { color: #1a4f8a; }
 
-  @media (max-width: 480px) {
-    #setup-screen h1, #setup-screen p.sub { padding-right: 96px; }
-    #game-header { padding-right: 96px; }
-  }
+  /* Reserve space for the fixed Stats/FAQ buttons in the top-right corner.
+     Not scoped to a width breakpoint: the buttons are viewport-anchored but
+     .page-container only gains real centering margin well past its own
+     640px max-width, so the overlap risk isn't tied to a single breakpoint. */
+  #setup-screen h1, #setup-screen p.sub { padding-right: 96px; }
+  #game-header { padding-right: 96px; }
 </style>
 </head>
 <body>
